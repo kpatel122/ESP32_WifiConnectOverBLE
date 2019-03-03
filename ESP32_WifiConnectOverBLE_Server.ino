@@ -81,11 +81,11 @@ void setupBLE()
 
   // Create a BLE Characteristic
   pCharacteristic = pService->createCharacteristic(
-										CHARACTERISTIC_UUID,
+                    CHARACTERISTIC_UUID,
                                         BLECharacteristic::PROPERTY_READ |
                                         BLECharacteristic::PROPERTY_WRITE |
-										BLECharacteristic::PROPERTY_NOTIFY
-									);
+                    BLECharacteristic::PROPERTY_NOTIFY
+                  );
                       
   pCharacteristic->addDescriptor(new BLE2902());
   pCharacteristic->setCallbacks(new MyCallbacks());
@@ -106,10 +106,13 @@ void setupWifi()
     delay(100);
 }
 
+
+
 void scanWifi()
 {
     Serial.println("scan start");
-    String wifinetworks = "";
+    String wifiNetworksJSON;
+    String encryption;
     // WiFi.scanNetworks will return the number of networks found
     int n = WiFi.scanNetworks();
     Serial.println("scan done");
@@ -118,10 +121,21 @@ void scanWifi()
     } else {
         Serial.print(n);
         Serial.println(" networks found");
+
+        wifiNetworksJSON = "[";
         for (int i = 0; i < n; ++i) {
             // Print SSID and RSSI for each network found
-            wifinetworks += String(i + 1) + " " + WiFi.SSID(i) + "\n";
-            
+            encryption = (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? "o":"p";
+            wifiNetworksJSON += "{\"ssid\":\""+WiFi.SSID(i) +"\",";
+            wifiNetworksJSON += "\"rssi\":\""+String(WiFi.RSSI(i)) +"\",";
+            wifiNetworksJSON += "\"encryption\":\""+encryption +"\"}";
+            if(i !=(n-1))
+            {
+                wifiNetworksJSON +=",";
+            }
+            //wifiNetworksJSON += WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? " ":"*";
+
+            /*
             Serial.print(i + 1);
             Serial.print(": ");
             Serial.print(WiFi.SSID(i));
@@ -129,9 +143,13 @@ void scanWifi()
             Serial.print(WiFi.RSSI(i));
             Serial.print(")");
             Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
+            */
             delay(10);
         }
-        pCharacteristic->setValue(wifinetworks.c_str());
+        wifiNetworksJSON += "]\n";
+        
+        Serial.println(wifiNetworksJSON);
+        pCharacteristic->setValue(wifiNetworksJSON.c_str());
         pCharacteristic->notify();
     }
 }
@@ -148,7 +166,7 @@ void loop() {
     if (deviceConnected) {
         scanWifi();
         delay(5000);
-	}
+  }
 
     // disconnecting
     if (!deviceConnected && oldDeviceConnected) {
@@ -159,7 +177,7 @@ void loop() {
     }
     // connecting
     if (deviceConnected && !oldDeviceConnected) {
-		// do stuff here on connecting
+    // do stuff here on connecting
         oldDeviceConnected = deviceConnected;
     }
 }
