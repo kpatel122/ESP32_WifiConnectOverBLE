@@ -19,6 +19,8 @@
    In this example rxValue is the data received (only accessible inside that function).
    And txValue is the data to be sent, in this example just a byte incremented every second. 
 */
+#include <Arduino.h>
+
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -33,9 +35,9 @@ uint8_t txValue = 0;
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
-#define SERVICE_UUID           "6E400001-B5A3-F393-E0A9-E50E24DCCA9E" // UART service UUID
-#define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
-#define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+#define SERVICE_UUID           "6e400001-b5a3-f393-e0a9-e50e24dcca9e" // UART service UUID
+#define CHARACTERISTIC_UUID_RX "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
+#define CHARACTERISTIC_UUID_TX "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -103,11 +105,16 @@ void setup() {
 
 void loop() {
 
+ 
     if (deviceConnected) {
-        pTxCharacteristic->setValue(&txValue, 1);
+
+        
+
+        Serial.println("Device Connected****");
+        pTxCharacteristic->setValue("YO YO\n");
         pTxCharacteristic->notify();
         txValue++;
-		delay(10); // bluetooth stack will go into congestion, if too many packets are sent
+		delay(2000); // bluetooth stack will go into congestion, if too many packets are sent
 	}
 
     // disconnecting
