@@ -66,10 +66,9 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 };
 
 
-void setup() {
-  Serial.begin(115200);
-
-  // Create the BLE Device
+void setupBLE()
+{
+    // Create the BLE Device
   BLEDevice::init("ESP32");
 
   // Create the BLE Server
@@ -96,6 +95,13 @@ void setup() {
   // Start advertising
   pServer->getAdvertising()->start();
   Serial.println("Waiting a client connection to notify...");
+
+}
+
+void setup() {
+  Serial.begin(115200);
+  setupBLE();
+  
 }
 
 void loop() {
