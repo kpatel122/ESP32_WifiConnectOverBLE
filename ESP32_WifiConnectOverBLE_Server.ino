@@ -19,18 +19,19 @@
    In this example rxValue is the data received (only accessible inside that function).
    And txValue is the data to be sent, in this example just a byte incremented every second. 
 */
-#include <Arduino.h>
+ 
 
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
+#include "WiFi.h"
+
 BLEServer *pServer = NULL;
 BLECharacteristic * pCharacteristic;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-uint8_t txValue = 0;
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -98,6 +99,43 @@ void setupBLE()
 
 }
 
+void setupWifi()
+{
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+}
+
+void scanWifi()
+{
+    Serial.println("scan start");
+    String wifinetworks = "";
+    // WiFi.scanNetworks will return the number of networks found
+    int n = WiFi.scanNetworks();
+    Serial.println("scan done");
+    if (n == 0) {
+        Serial.println("no networks found");
+    } else {
+        Serial.print(n);
+        Serial.println(" networks found");
+        for (int i = 0; i < n; ++i) {
+            // Print SSID and RSSI for each network found
+            wifinetworks += String(i + 1) + " " + WiFi.SSID(i) + "\n";
+            
+            Serial.print(i + 1);
+            Serial.print(": ");
+            Serial.print(WiFi.SSID(i));
+            Serial.print(" (");
+            Serial.print(WiFi.RSSI(i));
+            Serial.print(")");
+            Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
+            delay(10);
+        }
+        pCharacteristic->setValue(wifinetworks.c_str());
+        pCharacteristic->notify();
+    }
+}
+
 void setup() {
   Serial.begin(115200);
   setupBLE();
@@ -108,10 +146,8 @@ void loop() {
 
  
     if (deviceConnected) {
-
-        pCharacteristic->setValue("Hello!\n");
-        pCharacteristic->notify();
-        delay(2000);  
+        scanWifi();
+        delay(5000);
 	}
 
     // disconnecting
